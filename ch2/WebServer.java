@@ -34,7 +34,7 @@ public class WebServer {
 			i++;
 		}
 		int count=0;
-		while(i<b2.length) {
+		while(i<b1.length+b2.length) {
 			res[i] = b2[count];
 			i++;
 			count++;
@@ -45,19 +45,22 @@ public class WebServer {
      public static void main(String[] args) {
     	 try {
 			ServerSocket server = new ServerSocket(11000);
-			Socket socket = server.accept();
+			
 		    while(true) {
+		    	Socket socket = server.accept();
 		    	String res = "";
 		    	String path = getPath(socket.getInputStream());
 		    	if(path==null) res = "400 Bad Request";
+		    	path=path.substring(1);
 		    	Path p = Paths.get(path);
-		    	if(!Files.exists(p)) {
+		    	
+		    	if((!Files.exists(p))||Files.isDirectory(p)) {
 		    		res = "404 Not found";
 		    	}else {
 		    		res = "200 OK";
 		    	}
 		    	if(!res.equals("200 OK")) {
-		    		String s= "Http/1.1 "+res;
+		    		String s= "Http/1.1 "+res+"\nConnection: close\n\n"+res;
 		    		OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
 		    		writer.write(s);
 		    		writer.flush();
@@ -65,14 +68,17 @@ public class WebServer {
 		    	}else {
 		    		FileInputStream fis = new FileInputStream(path);
 		    		byte[] entity = fis.readAllBytes();
+		    		
 		    		fis.close();
 		    		int len = entity.length;
-		    		byte[] header= ("Http/1.1"+res+"\nContent-length: "+len+"\n").getBytes();
+		    		byte[] header= ("Http/1.1 "+res+"\nConnection: close\nContent-length: "+len+"\n\n").getBytes();
 		    		byte[] buffer = merge(header,entity);
+		    		System.out.println(new String(buffer));
 		    		OutputStream out  = socket.getOutputStream();
 		    		out.write(buffer);
 		    		out.close();
 		    	}
+		    	socket.close();
 		    	
 		    }
 		} catch (IOException e) {
