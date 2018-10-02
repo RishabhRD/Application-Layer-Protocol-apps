@@ -51,6 +51,7 @@ public class WebServer {
 		    	String res = "";
 		    	String path = getPath(socket.getInputStream());
 		    	if(path==null) res = "400 Bad Request";
+		    	else {
 		    	path=path.substring(1);
 		    	Path p = Paths.get(path);
 		    	
@@ -58,7 +59,7 @@ public class WebServer {
 		    		res = "404 Not found";
 		    	}else {
 		    		res = "200 OK";
-		    	}
+		    	}}
 		    	if(!res.equals("200 OK")) {
 		    		String s= "Http/1.1 "+res+"\nConnection: close\n\n"+res;
 		    		OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
